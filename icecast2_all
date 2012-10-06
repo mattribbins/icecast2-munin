@@ -50,7 +50,7 @@ def ic2xml():
     xmldoc = minidom.parseString(req.text)
     xmldoc = xmldoc.firstChild
 
-    total_listeners = xmldoc.getElementsByTagName("clients")[0].firstChild.nodeValue
+    total_listeners = xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue
     total_sources = xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue
 
     sources = xmldoc.getElementsByTagName("source")
@@ -89,7 +89,7 @@ def ic2xml():
         else:
             print((sys.argv[1]))
     else:
-        print(("totallisteners.value" + total_listeners))
+        print(("totallisteners.value " + total_listeners))
         print(("totalsources.value " + total_sources))
         sourcesort = list(sourcelist.keys())
         sourcesort.sort()
