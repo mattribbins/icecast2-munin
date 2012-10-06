@@ -2,4 +2,79 @@
 # -*- coding: iso-8859-1 -*-
 
 # IceCast2 stats plugin for Munin
-#
+
+#################
+# Configuration #
+#################
+# Hostname of Icecast server
+# Just canonical name, no http:// nor ending /, include port number if required
+host = "localhost:8000"
+# Username and password to the administration panel
+username = "admin"
+password = "changemenow"
+
+#######################
+# Magic happens below #
+#######################
+import os.path, time, sys
+import requests
+from xml.dom import minidom
+
+host = "http://" + host + "/admin/stats"
+
+def ic2xml():
+    # Get the XML with all the stats
+    req = requests.get(host, auth=(username, password))
+
+    xmldoc = minidom.parseString(req.text)
+    xmldoc = xmldoc.firstChild
+
+    total_listeners = xmldoc.getElementsByTagName("clients")[0].firstChild.nodeValue
+    total_sources = xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue
+
+    sources = xmldoc.getElementsByTagName("source")
+    sourcelist = {}
+    for source in sources:
+        mount = source.getAttribute("mount")
+        listeners = source.getElementsByTagName("listeners")[0].firstChild.nodeValue
+        name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
+        mount = mount.replace("-", "_").replace(".", "_")
+        sourcelist[mount[1:]] = (listeners, name)
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "autoconf":
+            print("yes")
+        elif sys.argv[1] == "dump":
+            print(req.text)
+        elif len(sys.argv) == 1 or sys.argv[1] != "config":
+            print(("totallisteners.value" + total_listeners))
+            print(("totalsources.value " + total_sources))
+            sourcesort = list(sourcelist.keys())
+            sourcesort.sort()
+            for source in sourcesort:
+                listeners, name = sourcelist[source]
+                print((source + ".value " + listeners))
+        elif sys.argv[1] == "config":
+            print ("graph_title Total number of listeners")
+            print ("graph_vlabel listeners")
+            print ("graph_category Icecast")
+            print ("totallisteners.label Total number of listeners")
+            print ("totalsources.label Totalt number of sources")
+            sourcesort = list(sourcelist.keys())
+            sourcesort.sort()
+            for source in sourcesort:
+                listeners, name = sourcelist[source]
+                print((source + ".label /" + source))
+        else:
+            print((sys.argv[1]))
+    else:
+        print(("totallisteners.value" + total_listeners))
+        print(("totalsources.value " + total_sources))
+        sourcesort = list(sourcelist.keys())
+        sourcesort.sort()
+        for source in sourcesort:
+            listeners, name = sourcelist[source]
+            print((source + ".value " + listeners))
+
+if __name__ == "__main__":
+    ic2xml()
