@@ -12,6 +12,19 @@ What?
 -----
 This is a plugin for munin to record global listener figures, mountpoint total, and individual mountpoint listener figures for your icecast server.
 
+How to use
+----------
+ 1. Copy icecast2_all to /usr/lib/munin/plugins
+ 2. Set executable flag on file ($ chmod +x /usr/lib/munin/plugins/icecast2_all)
+ 3. Edit icecast2_all configuration (host, username, password)
+ 4. Symlink to munin live plugins folder ($ ln -s /usr/lib/munin/plugins/icecast2_all /etc/munin/plugins/icecast2_all)
+ 5. Restart munin-node ($ /etc/rc.d/munin-node restart)
+ 6. Graphs should start to appear.
+ 
+Help!
+-----
+If you're stuck getting this working or notice something drastically wrong, you're welcome to email me. matt@mattyribbo.co.uk
+
 Remarks
 -------
 This plugin is based off a icecast2 plugin which was found in the munin plugin repository. It had no author, no licence, was using and old version of python and didn't work out of the box. I would credit you, but I don't know who you are, so hello.
