@@ -30,6 +30,8 @@
 # Hostname of Icecast server
 # Just canonical name, no http:// nor ending /, include port number if required
 host = "localhost:8000"
+# inset some descriptive name, to distinguish server on multiple plugin instances
+host_desc = "My icecast server"
 # Username and password to the administration panel
 username = "admin"
 password = "changemenow"
@@ -76,7 +78,7 @@ def ic2xml():
                 listeners, name = sourcelist[source]
                 print((source + ".value " + listeners))
         elif sys.argv[1] == "config":
-            print ("graph_title Total number of listeners")
+            print ("graph_title Total number of listeners on " + host_desc)
             print ("graph_vlabel listeners")
             print ("graph_category Icecast")
             print ("totallisteners.label Total number of listeners")
