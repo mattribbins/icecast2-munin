@@ -58,6 +58,8 @@ def ic2xml():
     sources = xmldoc.getElementsByTagName("source")
     sourcelist = {}
     for source in sources:
+        if len(source.childNodes) <= 3:
+          continue
         mount = source.getAttribute("mount")
         listeners = source.getElementsByTagName("listeners")[0].firstChild.nodeValue
         name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
