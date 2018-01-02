@@ -16,7 +16,8 @@ How to use
 ----------
  1. Copy icecast2_all to plugins directory (/usr/share/munin/plugins/ or /usr/lib/munin/plugins/)
  2. Set executable flag on file ($ chmod +x /usr/lib/munin/plugins/icecast2_all)
- 3. Edit icecast2_all configuration (host, username, password)
+ 3. Edit munin-node environment configuration ice2{host, user, pass}
+ 3.5. Else, edit icecast2_all configuration (host, username, password)
  4. Symlink to munin live plugins folder ($ ln -s /usr/share/munin/plugins/icecast2_all /etc/munin/plugins/icecast2_all)
  5. Restart munin-node ($ /etc/rc.d/munin-node restart)
  6. Graphs should start to appear.

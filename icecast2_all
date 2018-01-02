@@ -1,5 +1,5 @@
-#! /usr/bin/python
-# -*- coding: iso-8859-1 -*-
+#! /usr/bin/python3
+# -*- mode: python; coding: utf-8-unix; -*-
 
 # IceCast2 stats plugin for Munin
 # Author: Matt Ribbins (mattyribbo.co.uk)
@@ -27,14 +27,16 @@
 #################
 # Configuration #
 #################
+import os
 # Hostname of Icecast server
 # Just canonical name, no http:// nor ending /, include port number if required
-host = "localhost:8000"
+host = os.getenv('ice2host','localhost:8000')
 # inset some descriptive name, to distinguish server on multiple plugin instances
 host_desc = "My icecast server"
 # Username and password to the administration panel
-username = "admin"
-password = "changemenow"
+username = os.getenv('ice2user','admin')
+password = os.getenv('ice2pass','hackme')
+
 
 #######################
 # Magic happens below #
@@ -44,6 +46,7 @@ import requests
 from xml.dom import minidom
 
 host = "http://" + host + "/admin/stats"
+
 
 def ic2xml():
     # Get the XML with all the stats,
