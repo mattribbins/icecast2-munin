@@ -102,7 +102,7 @@ def ic2xml():
         sourcesort.sort()
         for source in sourcesort:
             listeners, name = sourcelist[source]
-            print((source + ".value " + listeners))
+            sys.stdout.buffer.write((source + ".value " + listeners + "\n").encode('utf-8'))
 
 if __name__ == "__main__":
     ic2xml()
