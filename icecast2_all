@@ -48,6 +48,9 @@ from xml.dom import minidom
 host = "http://" + host + "/admin/stats"
 
 
+def munin_print(u):
+	sys.stdout.buffer.write((u+"\n").encode('ascii','replace'))
+
 def ic2xml():
 	# Get the XML with all the stats,
 	req = requests.get(host, auth=(username, password))
@@ -81,7 +84,7 @@ def ic2xml():
 			sourcesort.sort()
 			for source in sourcesort:
 				listeners, name = sourcelist[source]
-				sys.stdout.buffer.write((source + ".value " + listeners + "\n").encode('utf-8'))
+				munin_print((source + ".value " + listeners))
 		elif sys.argv[1] == "config":
 			print ("graph_title Total number of listeners on " + host_desc)
 			print ("graph_vlabel listeners")
@@ -92,7 +95,7 @@ def ic2xml():
 			sourcesort.sort()
 			for source in sourcesort:
 				listeners, name = sourcelist[source]
-				sys.stdout.buffer.write((source + ".label " + source + "\n").encode('utf-8'))
+				munin_print((source + ".label " + source))
 		else:
 			print((sys.argv[1]))
 	else:
@@ -102,7 +105,7 @@ def ic2xml():
 		sourcesort.sort()
 		for source in sourcesort:
 			listeners, name = sourcelist[source]
-			sys.stdout.buffer.write((source + ".value " + listeners + "\n").encode('utf-8'))
+			munin_print((source + ".value " + listeners))
 
 if __name__ == "__main__":
 	ic2xml()
