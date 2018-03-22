@@ -72,7 +72,10 @@ def ic2xml():
 		mount = source.getAttribute("mount")
 		listeners = int(source.getElementsByTagName("listeners")[0].firstChild.nodeValue)
 		listeners = round(listeners)
-		name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
+        try:
+		    name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
+        except IndexError:
+            name = mount
 		mount = mount.replace("-", "_").replace(".", "_")
 		sourcelist[mount[1:]] = (listeners, name)
 
