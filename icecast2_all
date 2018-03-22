@@ -1,5 +1,5 @@
-#! /usr/bin/python
-# -*- coding: iso-8859-1 -*-
+#! /usr/bin/python3
+# -*- mode: python; coding: utf-8-unix; -*-
 
 # IceCast2 stats plugin for Munin
 # Author: Matt Ribbins (mattyribbo.co.uk)
@@ -27,14 +27,16 @@
 #################
 # Configuration #
 #################
+import os
 # Hostname of Icecast server
 # Just canonical name, no http:// nor ending /, include port number if required
-host = "localhost:8000"
+host = os.getenv('ice2host','localhost:8000')
 # inset some descriptive name, to distinguish server on multiple plugin instances
 host_desc = "My icecast server"
 # Username and password to the administration panel
-username = "admin"
-password = "changemenow"
+username = os.getenv('ice2user','admin')
+password = os.getenv('ice2pass','hackme')
+
 
 #######################
 # Magic happens below #
@@ -45,61 +47,65 @@ from xml.dom import minidom
 
 host = "http://" + host + "/admin/stats"
 
+
+def munin_print(u):
+	sys.stdout.buffer.write((u+"\n").encode('ascii','replace'))
+
 def ic2xml():
-    # Get the XML with all the stats,
-    req = requests.get(host, auth=(username, password))
+	# Get the XML with all the stats,
+	req = requests.get(host, auth=(username, password))
 
-    xmldoc = minidom.parseString(req.text)
-    xmldoc = xmldoc.firstChild
+	xmldoc = minidom.parseString(req.text)
+	xmldoc = xmldoc.firstChild
 
-    total_listeners = xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue
-    total_sources = xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue
+	total_listeners = xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue
+	total_sources = xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue
 
-    sources = xmldoc.getElementsByTagName("source")
-    sourcelist = {}
-    for source in sources:
-        if len(source.childNodes) <= 3:
-          continue
-        mount = source.getAttribute("mount")
-        listeners = source.getElementsByTagName("listeners")[0].firstChild.nodeValue
-        name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
-        mount = mount.replace("-", "_").replace(".", "_")
-        sourcelist[mount[1:]] = (listeners, name)
+	sources = xmldoc.getElementsByTagName("source")
+	sourcelist = {}
+	for source in sources:
+		if len(source.childNodes) <= 3:
+		  continue
+		mount = source.getAttribute("mount")
+		listeners = source.getElementsByTagName("listeners")[0].firstChild.nodeValue
+		name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
+		mount = mount.replace("-", "_").replace(".", "_")
+		sourcelist[mount[1:]] = (listeners, name)
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "autoconf":
-            print("yes")
-        elif sys.argv[1] == "dump":
-            print(req.text)
-        elif len(sys.argv) == 1 or sys.argv[1] != "config":
-            print(("totallisteners.value" + total_listeners))
-            print(("totalsources.value " + total_sources))
-            sourcesort = list(sourcelist.keys())
-            sourcesort.sort()
-            for source in sourcesort:
-                listeners, name = sourcelist[source]
-                print((source + ".value " + listeners))
-        elif sys.argv[1] == "config":
-            print ("graph_title Total number of listeners on " + host_desc)
-            print ("graph_vlabel listeners")
-            print ("graph_category Icecast")
-            print ("totallisteners.label Total number of listeners")
-            print ("totalsources.label Totalt number of sources")
-            sourcesort = list(sourcelist.keys())
-            sourcesort.sort()
-            for source in sourcesort:
-                listeners, name = sourcelist[source]
-                print((source + ".label /" + source))
-        else:
-            print((sys.argv[1]))
-    else:
-        print(("totallisteners.value " + total_listeners))
-        print(("totalsources.value " + total_sources))
-        sourcesort = list(sourcelist.keys())
-        sourcesort.sort()
-        for source in sourcesort:
-            listeners, name = sourcelist[source]
-            print((source + ".value " + listeners))
+	if len(sys.argv) > 1:
+		if sys.argv[1] == "autoconf":
+			print("yes")
+		elif sys.argv[1] == "dump":
+			print(req.text)
+		elif len(sys.argv) == 1 or sys.argv[1] != "config":
+			print(("totallisteners.value" + total_listeners))
+			print(("totalsources.value " + total_sources))
+			sourcesort = list(sourcelist.keys())
+			sourcesort.sort()
+			for source in sourcesort:
+				listeners, name = sourcelist[source]
+				munin_print((source + ".value " + listeners))
+		elif sys.argv[1] == "config":
+			print ("graph_title Total number of listeners on " + host_desc)
+			print ("graph_vlabel listeners")
+			print ("graph_category Icecast")
+			print ("totallisteners.label Total number of listeners")
+			print ("totalsources.label Totalt number of sources")
+			sourcesort = list(sourcelist.keys())
+			sourcesort.sort()
+			for source in sourcesort:
+				listeners, name = sourcelist[source]
+				munin_print((source + ".label " + source))
+		else:
+			print((sys.argv[1]))
+	else:
+		print(("totallisteners.value " + total_listeners))
+		print(("totalsources.value " + total_sources))
+		sourcesort = list(sourcelist.keys())
+		sourcesort.sort()
+		for source in sourcesort:
+			listeners, name = sourcelist[source]
+			munin_print((source + ".value " + listeners))
 
 if __name__ == "__main__":
-    ic2xml()
+	ic2xml()
