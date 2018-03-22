@@ -31,7 +31,7 @@ import os
 # Hostname of Icecast server
 # Just canonical name, no http:// nor ending /, include port number if required
 host = os.getenv('ice2host','localhost:8000')
-# inset some descriptive name, to distinguish server on multiple plugin instances
+# Insert some descriptive name, to distinguish server on multiple plugin instances
 host_desc = "My icecast server"
 # Username and password to the administration panel
 username = os.getenv('ice2user','admin')
@@ -58,16 +58,20 @@ def ic2xml():
 	xmldoc = minidom.parseString(req.text)
 	xmldoc = xmldoc.firstChild
 
-	total_listeners = xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue
-	total_sources = xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue
+	total_listeners = int(xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue)
+	total_sources = int(xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue)
+
+	total_listeners = round(total_listeners)
+	total_sources = round(total_sources)
 
 	sources = xmldoc.getElementsByTagName("source")
 	sourcelist = {}
 	for source in sources:
 		if len(source.childNodes) <= 3:
-		  continue
+			continue
 		mount = source.getAttribute("mount")
-		listeners = source.getElementsByTagName("listeners")[0].firstChild.nodeValue
+		listeners = int(source.getElementsByTagName("listeners")[0].firstChild.nodeValue)
+		listeners = round(listeners)
 		name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
 		mount = mount.replace("-", "_").replace(".", "_")
 		sourcelist[mount[1:]] = (listeners, name)
@@ -78,19 +82,20 @@ def ic2xml():
 		elif sys.argv[1] == "dump":
 			print(req.text)
 		elif len(sys.argv) == 1 or sys.argv[1] != "config":
-			print(("totallisteners.value" + total_listeners))
-			print(("totalsources.value " + total_sources))
+			print(("totallisteners.value" + str(total_listeners)))
+			print(("totalsources.value " + str(total_sources)))
 			sourcesort = list(sourcelist.keys())
 			sourcesort.sort()
 			for source in sourcesort:
 				listeners, name = sourcelist[source]
-				munin_print((source + ".value " + listeners))
+				munin_print((source + ".value " + str(listeners)))
 		elif sys.argv[1] == "config":
 			print ("graph_title Total number of listeners on " + host_desc)
 			print ("graph_vlabel listeners")
 			print ("graph_category Icecast")
+			print ("graph_printf %7.0lf")
 			print ("totallisteners.label Total number of listeners")
-			print ("totalsources.label Totalt number of sources")
+			print ("totalsources.label Total number of sources")
 			sourcesort = list(sourcelist.keys())
 			sourcesort.sort()
 			for source in sourcesort:
@@ -99,13 +104,13 @@ def ic2xml():
 		else:
 			print((sys.argv[1]))
 	else:
-		print(("totallisteners.value " + total_listeners))
-		print(("totalsources.value " + total_sources))
+		print(("totallisteners.value " + str(total_listeners)))
+		print(("totalsources.value " + str(total_sources)))
 		sourcesort = list(sourcelist.keys())
 		sourcesort.sort()
 		for source in sourcesort:
 			listeners, name = sourcelist[source]
-			munin_print((source + ".value " + listeners))
+			munin_print((source + ".value " + str(listeners)))
 
 if __name__ == "__main__":
-	ic2xml()
+		ic2xml()
