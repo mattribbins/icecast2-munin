@@ -39,12 +39,14 @@ host_name = ""
 # Username and password to the administration panel
 username = os.getenv('ice2user','admin')
 password = os.getenv('ice2pass','hackme')
+# Regex filter for mounts. Default is "(\/\w)", i.e. any word
+regex_filter = "(\/\w)";
 
 
 #######################
 # Magic happens below #
 #######################
-import os.path, time, sys
+import os.path, time, sys, re
 import requests
 from xml.dom import minidom
 
@@ -65,12 +67,13 @@ def ic2xml():
 		xmldoc = minidom.parseString(req.text)
 		xmldoc = xmldoc.firstChild
 
-		# Listner and source count
-		listener_count = int(xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue)
-		source_count = int(xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue)
+		# Listner and source totals (if we are doing a regex filter, calc manually)
+		if(regex_filter == "(\/\w)"):
+			listener_count = int(xmldoc.getElementsByTagName("listeners")[0].firstChild.nodeValue)
+			source_count = int(xmldoc.getElementsByTagName("sources")[0].firstChild.nodeValue)
 
-		total_listeners += round(listener_count)
-		total_sources += round(source_count)
+			total_listeners += round(listener_count)
+			total_sources += round(source_count)
 
 		sources = xmldoc.getElementsByTagName("source")
 
@@ -79,17 +82,22 @@ def ic2xml():
 			if len(source.childNodes) <= 3:
 				continue
 			mount = source.getAttribute("mount")
-			listener_count = int(source.getElementsByTagName("listeners")[0].firstChild.nodeValue)
-			listeners = round(listener_count)
-			try:
-				name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
-			except IndexError:
-				name = mount
-			mount = mount.replace("-", "_").replace(".", "_")
-			try:
-				sourcelist[mount[1:]] += listeners
-			except KeyError:
-				sourcelist[mount[1:]] = listeners;
+			if bool(re.match(regex_filter, mount)):
+				listener_count = int(source.getElementsByTagName("listeners")[0].firstChild.nodeValue)
+				listeners = round(listener_count)
+				# If we regex filter, count the listeners / sources manually
+				if(regex_filter != "(\/\w)"):
+					total_listeners += round(listener_count)
+					total_sources += 1
+				try:
+					name = source.getElementsByTagName("server_name")[0].firstChild.nodeValue
+				except IndexError:
+					name = mount
+				mount = mount.replace("-", "_").replace(".", "_")
+				try:
+					sourcelist[mount[1:]] += listeners
+				except KeyError:
+					sourcelist[mount[1:]] = listeners;
 
 	# Print munin data.
 	if len(sys.argv) > 1:
@@ -131,4 +139,4 @@ def ic2xml():
 			munin_print((source + ".value " + str(listeners)))
 
 if __name__ == "__main__":
-		ic2xml()
+	ic2xml()
