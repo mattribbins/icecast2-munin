@@ -120,6 +120,7 @@ def ic2xml():
 			print ("graph_vlabel listeners")
 			print ("graph_category Icecast")
 			print ("graph_printf %7.0lf")
+			print ("graph_scale no")
 			print ("totallisteners.label Total number of listeners")
 			print ("totalsources.label Total number of sources")
 			sourcesort = list(sourcelist.keys())
